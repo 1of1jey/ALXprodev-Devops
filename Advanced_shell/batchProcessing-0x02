@@ -30,3 +30,23 @@ for pokemon in "${POKEMON_LIST[@]}"; do
     
     # Extract response body (everything except last line)
     RESPONSE_BODY=$(echo "$HTTP_RESPONSE" | sed '$d')
+
+     
+    # Check if request was successful (HTTP 200)
+    if [ "$HTTP_CODE" -eq 200 ]; then
+        OUTPUT_FILE="$OUTPUT_DIR/${pokemon_lower}.json"
+        echo "$RESPONSE_BODY" > "$OUTPUT_FILE"
+        echo "Saved data to $OUTPUT_FILE"
+    else
+        # Log error with timestamp
+        TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
+        echo "[$TIMESTAMP] Error: HTTP $HTTP_CODE - Failed to fetch data for $pokemon_lower" >> "$ERROR_FILE"
+        echo "Error: Request failed with HTTP code $HTTP_CODE for $pokemon_lower"
+    fi
+    
+    # Add delay between requests to avoid rate-limiting
+    # Skip delay after the last Pokémon
+    if [ "$pokemon" != "${POKEMON_LIST[-1]}" ]; then
+        sleep "$DELAY"
+    fi
+done
