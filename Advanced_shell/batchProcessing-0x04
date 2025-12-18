@@ -37,7 +37,7 @@ fetch_pokemon() {
             else
                 TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
                 echo "[$TIMESTAMP] Error: Network failure after $MAX_RETRIES attempts for $pokemon" >> "$ERROR_FILE"
-                echo "Error: Network failure for $pokemon after $MAX_RETRIES attempts"
+                echo "Error: Network failure for $pokemon after $MAX_RETRIES attempts ❌"
                 return 1
             fi
         fi
@@ -52,13 +52,13 @@ fetch_pokemon() {
         if [ "$HTTP_CODE" -eq 200 ]; then
             OUTPUT_FILE="$OUTPUT_DIR/${pokemon}.json"
             echo "$RESPONSE_BODY" > "$OUTPUT_FILE"
-            echo "Saved data to $OUTPUT_FILE"
+            echo "Saved data to $OUTPUT_FILE ✅"
             return 0
         elif [ "$HTTP_CODE" -eq 404 ]; then
             # Invalid Pokémon name - don't retry
             TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
             echo "[$TIMESTAMP] Error: HTTP 404 - Invalid Pokémon name: $pokemon" >> "$ERROR_FILE"
-            echo "Error: Invalid Pokémon name '$pokemon' (HTTP 404)"
+            echo "Error: Invalid Pokémon name '$pokemon' (HTTP 404) ❌"
             return 1
         else
             # Other HTTP errors - retry
@@ -69,7 +69,7 @@ fetch_pokemon() {
             else
                 TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
                 echo "[$TIMESTAMP] Error: HTTP $HTTP_CODE after $MAX_RETRIES attempts for $pokemon" >> "$ERROR_FILE"
-                echo "Error: Request failed with HTTP code $HTTP_CODE for $pokemon"
+                echo "Error: Request failed with HTTP code $HTTP_CODE for $pokemon ❌"
                 return 1
             fi
         fi
@@ -133,3 +133,18 @@ if [ $FAIL_COUNT -gt 0 ]; then
     echo "Some fetches failed. Check $ERROR_FILE for details."
     exit 1
 fi
+
+# Cleanup function to kill all background processes on script exit
+cleanup() {
+    echo ""
+    echo "Cleaning up background processes..."
+    for pid in "${PIDS[@]}"; do
+        if kill -0 $pid 2>/dev/null; then
+            echo "Killing process $pid"
+            kill $pid 2>/dev/null
+        fi
+    done
+}
+
+# Set trap to call cleanup on script exit or interruption
+trap cleanup EXIT INT TERM
