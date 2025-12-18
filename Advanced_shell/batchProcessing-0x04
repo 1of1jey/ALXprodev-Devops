@@ -98,6 +98,11 @@ echo ""
 echo "All fetch processes launched. Waiting for completion..."
 echo ""
 
+# Display active background jobs
+echo "Active background jobs:"
+jobs
+echo ""
+
 # Wait for all background processes to complete
 SUCCESS_COUNT=0
 FAIL_COUNT=0
@@ -114,6 +119,11 @@ for pid in "${PIDS[@]}"; do
     fi
 done
 
+# Verify all jobs are complete
+echo "Remaining jobs after completion:"
+jobs
+
+# End timestamp and calculate duration
 END_TIME=$(date +%s)
 DURATION=$((END_TIME - START_TIME))
 
