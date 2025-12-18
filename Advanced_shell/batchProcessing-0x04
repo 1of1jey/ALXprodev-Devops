@@ -37,7 +37,7 @@ fetch_pokemon() {
             else
                 TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
                 echo "[$TIMESTAMP] Error: Network failure after $MAX_RETRIES attempts for $pokemon" >> "$ERROR_FILE"
-                echo "Error: Network failure for $pokemon after $MAX_RETRIES attempts ❌"
+                echo "Error: Network failure for $pokemon after $MAX_RETRIES attempts"
                 return 1
             fi
         fi
@@ -52,13 +52,13 @@ fetch_pokemon() {
         if [ "$HTTP_CODE" -eq 200 ]; then
             OUTPUT_FILE="$OUTPUT_DIR/${pokemon}.json"
             echo "$RESPONSE_BODY" > "$OUTPUT_FILE"
-            echo "Saved data to $OUTPUT_FILE ✅"
+            echo "Saved data to $OUTPUT_FILE"
             return 0
         elif [ "$HTTP_CODE" -eq 404 ]; then
             # Invalid Pokémon name - don't retry
             TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
             echo "[$TIMESTAMP] Error: HTTP 404 - Invalid Pokémon name: $pokemon" >> "$ERROR_FILE"
-            echo "Error: Invalid Pokémon name '$pokemon' (HTTP 404) ❌"
+            echo "Error: Invalid Pokémon name '$pokemon' (HTTP 404)"
             return 1
         else
             # Other HTTP errors - retry
@@ -69,7 +69,7 @@ fetch_pokemon() {
             else
                 TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
                 echo "[$TIMESTAMP] Error: HTTP $HTTP_CODE after $MAX_RETRIES attempts for $pokemon" >> "$ERROR_FILE"
-                echo "Error: Request failed with HTTP code $HTTP_CODE for $pokemon ❌"
+                echo "Error: Request failed with HTTP code $HTTP_CODE for $pokemon"
                 return 1
             fi
         fi
