@@ -1,1 +1,62 @@
+#!/bin/bash
 
+# Pokémon Summary Report Generator
+# Reads JSON files and creates a CSV report with statistics
+# Uses jq for JSON parsing and awk for calculations
+
+DATA_DIR="pokemon_data"
+OUTPUT_CSV="pokemon_report.csv"
+
+# Check if data directory exists
+if [ ! -d "$DATA_DIR" ]; then
+    echo "Error: $DATA_DIR directory not found. Please run batchProcessing-0x02 first."
+    exit 1
+fi
+
+# Check if there are any JSON files
+if [ -z "$(ls -A $DATA_DIR/*.json 2>/dev/null)" ]; then
+    echo "Error: No JSON files found in $DATA_DIR"
+    exit 1
+fi
+
+# Create CSV header
+echo "Name,Height (m),Weight (kg)" > "$OUTPUT_CSV"
+
+# Process each JSON file and extract data
+for json_file in "$DATA_DIR"/*.json; do
+    # Extract name, height, and weight using jq
+    name=$(jq -r '.name' "$json_file" | sed 's/^./\u&/')
+    height=$(jq -r '.height' "$json_file" | awk '{printf "%.1f", $1/10}')
+    weight=$(jq -r '.weight' "$json_file" | awk '{printf "%.1f", $1/10}')
+    
+    # Append to CSV
+    echo "$name,$height,$weight" >> "$OUTPUT_CSV"
+done
+
+# Sort the CSV by name (excluding header)
+{
+    head -n 1 "$OUTPUT_CSV"
+    tail -n +2 "$OUTPUT_CSV" | sort
+} > "$OUTPUT_CSV.tmp" && mv "$OUTPUT_CSV.tmp" "$OUTPUT_CSV"
+
+# Display the report
+echo "CSV Report generated at: $OUTPUT_CSV"
+echo ""
+cat "$OUTPUT_CSV"
+echo ""
+
+# Calculate averages using awk
+tail -n +2 "$OUTPUT_CSV" | awk -F',' '
+{
+    sum_height += $2
+    sum_weight += $3
+    count++
+}
+END {
+    if (count > 0) {
+        avg_height = sum_height / count
+        avg_weight = sum_weight / count
+        printf "Average Height: %.2f m\n", avg_height
+        printf "Average Weight: %.2f kg\n", avg_weight
+    }
+}'
