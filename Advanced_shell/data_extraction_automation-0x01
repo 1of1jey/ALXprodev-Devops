@@ -13,10 +13,14 @@ if [ ! -f "$DATA_FILE" ]; then
 fi
 
 # Extract data using jq
-NAME=$(jq -r '.name' "$DATA_FILE" | sed 's/^./\u&/')
-HEIGHT=$(jq -r '.height' "$DATA_FILE" | awk '{printf "%.1f", $1/10}')
-WEIGHT=$(jq -r '.weight' "$DATA_FILE" | awk '{printf "%d", $1/10}')
-TYPE=$(jq -r '.types[0].type.name' "$DATA_FILE" | sed 's/^./\u&/')
+name=$(jq -r '.name' "$DATA_FILE" | sed 's/^./\u&/')
+height=$(jq -r '.height' "$DATA_FILE")
+weight=$(jq -r '.weight' "$DATA_FILE")
+type=$(jq -r '.types[0].type.name' "$DATA_FILE" | sed 's/^./\u&/')
+
+# Format height and weight using awk
+formatted_height=$(echo "$height" | awk '{printf "%.1f", $1/10}')
+formatted_weight=$(echo "$weight" | awk '{printf "%d", $1/10}')
 
 # Format and display output
-echo "$NAME is of type $TYPE, weighs ${WEIGHT}kg, and is ${HEIGHT}m tall."
+echo "$name is of type $type, weighs ${formatted_weight}kg, and is ${formatted_height}m tall."
